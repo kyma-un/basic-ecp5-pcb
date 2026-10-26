@@ -1,0 +1,86 @@
+<mujoco model="quadcopter">
+  <!--
+    Cuadricóptero en X. Mundo y cuerpo: x adelante, y a la izquierda, z arriba.
+    Motores (orden de actuadores): FR, FL, RL, RR.
+    Las diagonales giran igual: FR y RL con par de reacción +z, FL y RR con -z.
+    El campo magnetic está en µT (el simulador es adimensional; así lo publicamos).
+  -->
+  <compiler autolimits="true"/>
+  <option timestep="0.001" gravity="0 0 -9.81" magnetic="22 5 42" integrator="implicitfast"/>
+
+  <visual>
+    <headlight diffuse="0.6 0.6 0.6" ambient="0.4 0.4 0.4" specular="0.15 0.15 0.15"/>
+    <rgba haze="0.15 0.25 0.35 1"/>
+    <map znear="0.02" zfar="40"/>
+    <global azimuth="135" elevation="-25"/>
+  </visual>
+  <statistic center="0 0 1" extent="3"/>
+
+  <default>
+    <geom density="0" contype="0" conaffinity="0"/>
+  </default>
+
+  <asset>
+    <texture name="grid" type="2d" builtin="checker" width="512" height="512"
+             rgb1="0.86 0.88 0.91" rgb2="0.62 0.68 0.74"/>
+    <material name="grid" texture="grid" texrepeat="10 10" reflectance="0.12"/>
+  </asset>
+
+  <worldbody>
+    <light pos="0 0 6" dir="0 0 -1" directional="true"/>
+    <geom name="floor" type="plane" size="20 20 0.1" material="grid" contype="1" conaffinity="1"/>
+    <!-- Ejes del mundo: x rojo, y verde. -->
+    <geom name="world_x" type="capsule" fromto="0 0 0.012 0.7 0 0.012" size="0.012" rgba="0.85 0.2 0.2 1"/>
+    <geom name="world_y" type="capsule" fromto="0 0 0.012 0 0.7 0.012" size="0.012" rgba="0.2 0.65 0.3 1"/>
+    <!-- Marcas de la rutina automática. -->
+    <geom name="wp_home" type="cylinder" pos="0 0 0.015" size="0.09 0.015" rgba="0.2 0.75 0.35 0.55"/>
+    <geom name="wp_a" type="cylinder" pos="2 0 0.015" size="0.09 0.015" rgba="0.95 0.78 0.15 0.7"/>
+    <geom name="wp_b" type="cylinder" pos="2 2 0.015" size="0.09 0.015" rgba="0.95 0.78 0.15 0.7"/>
+    <geom name="wp_c" type="cylinder" pos="0 2 0.015" size="0.09 0.015" rgba="0.95 0.78 0.15 0.7"/>
+    <geom name="wp_d" type="cylinder" pos="0 -1.5 0.015" size="0.09 0.015" rgba="0.95 0.45 0.15 0.7"/>
+
+    <body name="base" pos="0 0 1">
+      <freejoint name="root"/>
+      <inertial pos="0 0 0" mass="1.3" diaginertia="0.018 0.018 0.032"/>
+      <geom name="hull" type="box" size="0.07 0.07 0.02" rgba="0.16 0.17 0.2 1" contype="1" conaffinity="1"/>
+      <geom name="nose" type="capsule" fromto="0.06 0 0 0.16 0 0" size="0.016" rgba="0.9 0.22 0.18 1"/>
+
+      <geom name="arm_fr" type="capsule" fromto="0 0 0 0.16 -0.16 0" size="0.011" rgba="0.28 0.3 0.34 1"/>
+      <geom name="arm_fl" type="capsule" fromto="0 0 0 0.16 0.16 0" size="0.011" rgba="0.28 0.3 0.34 1"/>
+      <geom name="arm_rl" type="capsule" fromto="0 0 0 -0.16 0.16 0" size="0.011" rgba="0.28 0.3 0.34 1"/>
+      <geom name="arm_rr" type="capsule" fromto="0 0 0 -0.16 -0.16 0" size="0.011" rgba="0.28 0.3 0.34 1"/>
+
+      <geom name="pod_fr" type="cylinder" pos="0.16 -0.16 0.018" size="0.022 0.012" rgba="0.85 0.25 0.2 1"/>
+      <geom name="pod_fl" type="cylinder" pos="0.16 0.16 0.018" size="0.022 0.012" rgba="0.25 0.65 0.3 1"/>
+      <geom name="pod_rl" type="cylinder" pos="-0.16 0.16 0.018" size="0.022 0.012" rgba="0.25 0.4 0.8 1"/>
+      <geom name="pod_rr" type="cylinder" pos="-0.16 -0.16 0.018" size="0.022 0.012" rgba="0.9 0.55 0.15 1"/>
+
+      <geom name="prop_fr" type="cylinder" pos="0.16 -0.16 0.034" size="0.082 0.003" rgba="0.9 0.3 0.25 0.45"/>
+      <geom name="prop_fl" type="cylinder" pos="0.16 0.16 0.034" size="0.082 0.003" rgba="0.3 0.75 0.35 0.45"/>
+      <geom name="prop_rl" type="cylinder" pos="-0.16 0.16 0.034" size="0.082 0.003" rgba="0.3 0.45 0.85 0.45"/>
+      <geom name="prop_rr" type="cylinder" pos="-0.16 -0.16 0.034" size="0.082 0.003" rgba="0.95 0.6 0.2 0.45"/>
+
+      <site name="imu" pos="0 0 0" size="0.01" rgba="1 1 1 0.8"/>
+      <!-- gear del actuador: fuerza en +z del sitio y par de reacción en z. -->
+      <site name="fr" pos="0.16 -0.16 0.034" size="0.012" rgba="0.85 0.25 0.2 1"/>
+      <site name="fl" pos="0.16 0.16 0.034" size="0.012" rgba="0.25 0.65 0.3 1"/>
+      <site name="rl" pos="-0.16 0.16 0.034" size="0.012" rgba="0.25 0.4 0.8 1"/>
+      <site name="rr" pos="-0.16 -0.16 0.034" size="0.012" rgba="0.9 0.55 0.15 1"/>
+    </body>
+  </worldbody>
+
+  <actuator>
+    <!-- ctrl = empuje en newton. El 6º coeficiente es par_z / empuje (m). -->
+    <motor name="fr" site="fr" gear="0 0 1 0 0 0.016" ctrlrange="0 8"/>
+    <motor name="fl" site="fl" gear="0 0 1 0 0 -0.016" ctrlrange="0 8"/>
+    <motor name="rl" site="rl" gear="0 0 1 0 0 0.016" ctrlrange="0 8"/>
+    <motor name="rr" site="rr" gear="0 0 1 0 0 -0.016" ctrlrange="0 8"/>
+  </actuator>
+
+  <sensor>
+    <accelerometer name="accel" site="imu"/>
+    <gyro name="gyro" site="imu"/>
+    <magnetometer name="mag" site="imu"/>
+    <framepos name="pos" objtype="site" objname="imu"/>
+  </sensor>
+</mujoco>

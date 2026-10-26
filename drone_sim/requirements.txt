@@ -1,0 +1,4 @@
+mujoco>=3.2
+numpy>=1.26
+pyzmq>=26
+matplotlib>=3.8
